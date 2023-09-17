@@ -2,6 +2,7 @@ use bevy::{math::vec3, prelude::*};
 use ingredient::IngredientPlugin;
 
 mod ingredient;
+mod recipe;
 
 fn main() {
     App::new()

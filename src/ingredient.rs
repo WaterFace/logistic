@@ -1,10 +1,27 @@
 use bevy::{prelude::*, text::DEFAULT_FONT_HANDLE};
 
+#[derive(Debug, PartialEq, Eq, Hash, Clone, Copy)]
+pub enum IngredientType {
+    Ore,
+    Coal,
+    Iron,
+}
+
+impl IngredientType {
+    pub fn name(&self) -> &'static str {
+        match self {
+            IngredientType::Ore => "Ore",
+            IngredientType::Coal => "Coal",
+            IngredientType::Iron => "Iron",
+        }
+    }
+}
+
 #[derive(Debug)]
 pub struct Ingredient {
-    quantity: f64,
-    capacity: Option<f64>,
-    color: Color,
+    pub quantity: f64,
+    pub capacity: Option<f64>,
+    pub color: Color,
 }
 
 impl Ingredient {
@@ -12,6 +29,13 @@ impl Ingredient {
         match self.capacity {
             None => self.quantity += amount,
             Some(cap) => self.quantity = f64::min(cap, self.quantity + amount),
+        }
+    }
+
+    pub fn with_color(color: Color) -> Self {
+        Self {
+            color,
+            ..Default::default()
         }
     }
 }
@@ -26,29 +50,29 @@ impl Default for Ingredient {
     }
 }
 
-#[derive(Resource, Debug)]
+#[derive(Resource)]
 pub struct Ingredients {
-    pub ore: Ingredient,
-    pub iron: Ingredient,
-    pub coal: Ingredient,
+    ore: Ingredient,
+    coal: Ingredient,
+    iron: Ingredient,
+}
+
+impl Ingredients {
+    pub fn get(&self, ty: IngredientType) -> &Ingredient {
+        match ty {
+            IngredientType::Ore => &self.ore,
+            IngredientType::Coal => &self.coal,
+            IngredientType::Iron => &self.iron,
+        }
+    }
 }
 
 impl Default for Ingredients {
     fn default() -> Self {
         Ingredients {
-            ore: Ingredient {
-                color: Color::BEIGE,
-                ..Default::default()
-            },
-            iron: Ingredient {
-                color: Color::GRAY,
-                ..Default::default()
-            },
-            coal: Ingredient {
-                color: Color::BLACK,
-                capacity: Some(10.0),
-                ..Default::default()
-            },
+            ore: Ingredient::with_color(Color::BEIGE),
+            coal: Ingredient::with_color(Color::GRAY),
+            iron: Ingredient::with_color(Color::BLACK),
         }
     }
 }
@@ -60,7 +84,7 @@ impl Plugin for IngredientPlugin {
         app.init_resource::<Ingredients>()
             .add_systems(Update, tick_ingredients)
             .add_systems(Startup, setup_ui)
-            .add_systems(Update, update_ingredient_displays.after(tick_ingredients));
+            .add_systems(PostUpdate, update_ingredient_displays);
     }
 }
 
