@@ -32,6 +32,10 @@ impl Ingredient {
         }
     }
 
+    pub fn spend_ingredient(&mut self, amount: f64) {
+        self.quantity = f64::max(0.0, self.quantity - amount);
+    }
+
     pub fn with_color(color: Color) -> Self {
         Self {
             color,
@@ -65,6 +69,14 @@ impl Ingredients {
             IngredientType::Iron => &self.iron,
         }
     }
+
+    pub fn get_mut(&mut self, ty: IngredientType) -> &mut Ingredient {
+        match ty {
+            IngredientType::Ore => &mut self.ore,
+            IngredientType::Coal => &mut self.coal,
+            IngredientType::Iron => &mut self.iron,
+        }
+    }
 }
 
 impl Default for Ingredients {
@@ -82,19 +94,9 @@ pub struct IngredientPlugin;
 impl Plugin for IngredientPlugin {
     fn build(&self, app: &mut App) {
         app.init_resource::<Ingredients>()
-            .add_systems(Update, tick_ingredients)
             .add_systems(Startup, setup_ui)
             .add_systems(PostUpdate, update_ingredient_displays);
     }
-}
-
-fn tick_ingredients(mut ingredients: ResMut<Ingredients>, time: Res<Time>) {
-    let dt = time.delta_seconds_f64();
-
-    ingredients.ore.add_ingredient(1.0 * dt);
-    ingredients.coal.add_ingredient(2.5 * dt);
-
-    // info!("{:?}", ingredients);
 }
 
 fn setup_ui(mut commands: Commands) {

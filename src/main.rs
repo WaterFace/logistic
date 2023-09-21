@@ -1,5 +1,6 @@
 use bevy::{math::vec3, prelude::*};
-use ingredient::IngredientPlugin;
+use ingredient::{IngredientPlugin, IngredientType};
+use recipe::{Recipe, RecipePlugin, Recipes};
 
 mod ingredient;
 mod recipe;
@@ -7,9 +8,43 @@ mod recipe;
 fn main() {
     App::new()
         .add_plugins(DefaultPlugins)
-        .add_systems(Startup, setup)
-        .add_plugins(IngredientPlugin)
+        .add_plugins((IngredientPlugin, RecipePlugin))
+        .add_systems(Startup, (setup, setup_recipes))
         .run();
+}
+
+fn setup_recipes(mut recipes: ResMut<Recipes>) {
+    // Ore generation
+    recipes.add_recipe(Recipe {
+        input: vec![],
+        output: vec![(IngredientType::Ore, 1.0)],
+        automatic: true,
+        delay: 0.2,
+    });
+
+    // Manual ore generation, not hooked up yet
+    recipes.add_recipe(Recipe {
+        input: vec![],
+        output: vec![(IngredientType::Ore, 50.0)],
+        automatic: false,
+        delay: 5.0,
+    });
+
+    // Coal generation
+    recipes.add_recipe(Recipe {
+        input: vec![],
+        output: vec![(IngredientType::Coal, 5.0)],
+        automatic: true,
+        delay: 3.0,
+    });
+
+    // Smelting
+    recipes.add_recipe(Recipe {
+        input: vec![(IngredientType::Ore, 1.0), (IngredientType::Coal, 0.5)],
+        output: vec![(IngredientType::Iron, 1.0)],
+        automatic: true,
+        delay: 1.0,
+    });
 }
 
 fn setup(
