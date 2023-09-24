@@ -1,14 +1,17 @@
 use bevy::{math::vec3, prelude::*};
+
 use ingredient::{IngredientPlugin, IngredientType};
 use recipe::{Recipe, RecipePlugin, Recipes};
+use ui::UiPlugin;
 
 mod ingredient;
 mod recipe;
+mod ui;
 
 fn main() {
     App::new()
         .add_plugins(DefaultPlugins)
-        .add_plugins((IngredientPlugin, RecipePlugin))
+        .add_plugins((IngredientPlugin, RecipePlugin, UiPlugin))
         .add_systems(Startup, (setup, setup_recipes))
         .run();
 }

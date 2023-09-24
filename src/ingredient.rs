@@ -1,18 +1,38 @@
-use bevy::{prelude::*, text::DEFAULT_FONT_HANDLE};
+use bevy::prelude::*;
 
 #[derive(Debug, PartialEq, Eq, Hash, Clone, Copy)]
+#[repr(usize)]
 pub enum IngredientType {
     Ore,
     Coal,
     Iron,
 }
 
+// Keep this up to date
+const INGREDIENT_TYPES: &'static [IngredientType] = &[
+    IngredientType::Ore,
+    IngredientType::Coal,
+    IngredientType::Iron,
+];
+
 impl IngredientType {
+    pub const fn values() -> &'static [Self] {
+        INGREDIENT_TYPES
+    }
+
     pub fn name(&self) -> &'static str {
         match self {
             IngredientType::Ore => "Ore",
             IngredientType::Coal => "Coal",
             IngredientType::Iron => "Iron",
+        }
+    }
+
+    pub fn color(&self) -> Color {
+        match self {
+            IngredientType::Ore => Color::BEIGE,
+            IngredientType::Coal => Color::BLACK,
+            IngredientType::Iron => Color::GRAY,
         }
     }
 }
@@ -21,7 +41,6 @@ impl IngredientType {
 pub struct Ingredient {
     pub quantity: f64,
     pub capacity: Option<f64>,
-    pub color: Color,
 }
 
 impl Ingredient {
@@ -35,13 +54,6 @@ impl Ingredient {
     pub fn spend_ingredient(&mut self, amount: f64) {
         self.quantity = f64::max(0.0, self.quantity - amount);
     }
-
-    pub fn with_color(color: Color) -> Self {
-        Self {
-            color,
-            ..Default::default()
-        }
-    }
 }
 
 impl Default for Ingredient {
@@ -49,42 +61,33 @@ impl Default for Ingredient {
         Ingredient {
             quantity: 0.0,
             capacity: None,
-            color: Color::WHITE,
         }
     }
 }
 
 #[derive(Resource)]
 pub struct Ingredients {
-    ore: Ingredient,
-    coal: Ingredient,
-    iron: Ingredient,
+    ingredients: [Ingredient; INGREDIENT_TYPES.len()],
 }
 
 impl Ingredients {
     pub fn get(&self, ty: IngredientType) -> &Ingredient {
-        match ty {
-            IngredientType::Ore => &self.ore,
-            IngredientType::Coal => &self.coal,
-            IngredientType::Iron => &self.iron,
-        }
+        &self.ingredients[ty as usize]
     }
 
     pub fn get_mut(&mut self, ty: IngredientType) -> &mut Ingredient {
-        match ty {
-            IngredientType::Ore => &mut self.ore,
-            IngredientType::Coal => &mut self.coal,
-            IngredientType::Iron => &mut self.iron,
-        }
+        &mut self.ingredients[ty as usize]
     }
 }
 
 impl Default for Ingredients {
     fn default() -> Self {
         Ingredients {
-            ore: Ingredient::with_color(Color::BEIGE),
-            coal: Ingredient::with_color(Color::GRAY),
-            iron: Ingredient::with_color(Color::BLACK),
+            ingredients: [
+                Ingredient::default(), // Ore
+                Ingredient::default(), // Coal
+                Ingredient::default(), // Iron
+            ],
         }
     }
 }
@@ -93,86 +96,6 @@ pub struct IngredientPlugin;
 
 impl Plugin for IngredientPlugin {
     fn build(&self, app: &mut App) {
-        app.init_resource::<Ingredients>()
-            .add_systems(Startup, setup_ui)
-            .add_systems(PostUpdate, update_ingredient_displays);
-    }
-}
-
-fn setup_ui(mut commands: Commands) {
-    commands
-        .spawn(NodeBundle {
-            style: Style {
-                flex_direction: FlexDirection::Column,
-                ..Default::default()
-            },
-            ..Default::default()
-        })
-        .with_children(|c| {
-            ingredient_display(c, DEFAULT_FONT_HANDLE.typed(), 0);
-            ingredient_display(c, DEFAULT_FONT_HANDLE.typed(), 1);
-            ingredient_display(c, DEFAULT_FONT_HANDLE.typed(), 2);
-        });
-}
-
-#[derive(Component, Debug)]
-struct IngredientDisplayMarker(u32);
-
-fn ingredient_display(parent: &mut ChildBuilder, font: Handle<Font>, ingredient_index: u32) {
-    parent
-        .spawn(NodeBundle {
-            background_color: Color::DARK_GRAY.into(),
-            style: Style {
-                min_width: Val::Vw(15.0),
-                ..Default::default()
-            },
-            ..Default::default()
-        })
-        .with_children(|c| {
-            c.spawn(TextBundle {
-                text: Text::from_section(
-                    format!("{}", ingredient_index),
-                    TextStyle {
-                        font,
-                        font_size: 24.0,
-                        ..Default::default()
-                    },
-                ),
-                ..Default::default()
-            })
-            .insert(IngredientDisplayMarker(ingredient_index));
-        });
-}
-
-fn update_ingredient_displays(
-    mut query: Query<(&mut Text, &IngredientDisplayMarker)>,
-    ingredients: Res<Ingredients>,
-) {
-    for (mut display, &IngredientDisplayMarker(index)) in &mut query {
-        let text = match index {
-            0 => Text::from_section(
-                format!("Ore: {:.0}", ingredients.ore.quantity),
-                TextStyle {
-                    color: ingredients.ore.color,
-                    ..display.sections[0].style.clone()
-                },
-            ),
-            1 => Text::from_section(
-                format!("Iron: {:.0}", ingredients.iron.quantity),
-                TextStyle {
-                    color: ingredients.iron.color,
-                    ..display.sections[0].style.clone()
-                },
-            ),
-            2 => Text::from_section(
-                format!("Coal: {:.0}", ingredients.coal.quantity),
-                TextStyle {
-                    color: ingredients.coal.color,
-                    ..display.sections[0].style.clone()
-                },
-            ),
-            _ => continue,
-        };
-        *display = text;
+        app.init_resource::<Ingredients>();
     }
 }
