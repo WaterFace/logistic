@@ -7,6 +7,7 @@ use ui::UiPlugin;
 mod ingredient;
 mod recipe;
 mod ui;
+mod utils;
 
 fn main() {
     App::new()
