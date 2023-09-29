@@ -2,10 +2,12 @@ use std::f32::consts::PI;
 
 use bevy::{prelude::*, utils::HashMap};
 
-use crate::ingredient::{IngredientType, Ingredients};
+use crate::ingredient::IngredientType;
 
+#[derive(Component)]
 pub struct Node {
-    ty: IngredientType,
+    pub ty: IngredientType,
+    pub visible: bool,
 }
 
 #[derive(Resource, Default)]
@@ -54,12 +56,18 @@ fn setup_nodes(
     for ty in IngredientType::values() {
         let t = 2.0 * PI * (*ty as usize as f32 / IngredientType::values().len() as f32);
         let e = commands
-            .spawn(PbrBundle {
-                mesh: mesh.clone(),
-                material: materials.add(ty.color().into()),
-                transform: Transform::from_xyz(2.0 * f32::cos(t), 0.5, 2.0 * f32::sin(t)),
-                ..Default::default()
-            })
+            .spawn((
+                PbrBundle {
+                    mesh: mesh.clone(),
+                    material: materials.add(ty.color().into()),
+                    transform: Transform::from_xyz(2.0 * f32::cos(t), 0.5, 2.0 * f32::sin(t)),
+                    ..Default::default()
+                },
+                Node {
+                    ty: *ty,
+                    visible: true,
+                },
+            ))
             .id();
 
         match registry.get_mut(ty) {

@@ -2,12 +2,14 @@ use bevy::{math::vec3, prelude::*};
 
 use camera::CameraPlugin;
 use ingredient::{IngredientPlugin, IngredientType};
+use link::LinkPlugin;
 use node::NodePlugin;
 use recipe::{Recipe, RecipePlugin, Recipes};
 use ui::UiPlugin;
 
 mod camera;
 mod ingredient;
+mod link;
 mod node;
 mod recipe;
 mod ui;
@@ -21,6 +23,7 @@ fn main() {
             RecipePlugin,
             UiPlugin,
             NodePlugin,
+            LinkPlugin,
             CameraPlugin,
         ))
         .add_systems(Startup, (setup, setup_recipes))
@@ -66,17 +69,17 @@ fn setup(
     mut meshes: ResMut<Assets<Mesh>>,
     mut materials: ResMut<Assets<StandardMaterial>>,
 ) {
-    commands.spawn(PbrBundle {
-        mesh: meshes.add(
-            shape::Plane {
-                size: 100.0,
-                ..Default::default()
-            }
-            .into(),
-        ),
-        material: materials.add(Color::WHITE.into()),
-        ..Default::default()
-    });
+    // commands.spawn(PbrBundle {
+    //     mesh: meshes.add(
+    //         shape::Plane {
+    //             size: 100.0,
+    //             ..Default::default()
+    //         }
+    //         .into(),
+    //     ),
+    //     material: materials.add(Color::WHITE.into()),
+    //     ..Default::default()
+    // });
 
     commands.spawn(DirectionalLightBundle {
         directional_light: DirectionalLight {

@@ -32,10 +32,10 @@ impl Recipe {
 
 #[derive(Debug)]
 pub struct RecipeHolder {
-    recipe: Recipe,
-    automation_enabled: bool,
-    time: f64,
-    started: bool,
+    pub recipe: Recipe,
+    pub automation_enabled: bool,
+    pub time: f64,
+    pub started: bool,
 }
 
 impl RecipeHolder {
