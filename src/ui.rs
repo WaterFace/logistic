@@ -3,7 +3,9 @@ use bevy::prelude::*;
 use bevy_egui::{egui, EguiContexts, EguiPlugin, EguiSet, EguiStartupSet};
 
 use crate::{
+    camera::SetTarget,
     ingredient::{IngredientType, Ingredients},
+    node::NodeRegistry,
     utils,
 };
 
@@ -33,6 +35,8 @@ fn draw_ui(
     mut hide_display: Local<bool>,
     mut owned_labels: Local<Vec<String>>,
     main_window_query: Query<Entity, With<bevy::window::PrimaryWindow>>,
+    mut writer: EventWriter<SetTarget>,
+    node_registry: Res<NodeRegistry>,
 ) {
     let Ok(main_window) = main_window_query.get_single() else {
         return;
@@ -61,6 +65,9 @@ fn draw_ui(
                         .clicked()
                     {
                         info!("{} clicked!", ty.name());
+                        if let Some(e) = node_registry.get(ty) {
+                            writer.send(SetTarget(*e));
+                        }
                     }
                 });
             }

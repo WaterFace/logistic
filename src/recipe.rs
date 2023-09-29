@@ -64,6 +64,13 @@ impl Recipes {
         self.recipes.push(holder);
         RecipeIndex(i)
     }
+
+    pub fn enumerate(&self) -> impl Iterator<Item = (RecipeIndex, &RecipeHolder)> {
+        self.recipes
+            .iter()
+            .enumerate()
+            .map(|(i, r)| (RecipeIndex(i), r))
+    }
 }
 
 #[derive(Event, Debug)]

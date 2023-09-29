@@ -1,10 +1,14 @@
 use bevy::{math::vec3, prelude::*};
 
+use camera::CameraPlugin;
 use ingredient::{IngredientPlugin, IngredientType};
+use node::NodePlugin;
 use recipe::{Recipe, RecipePlugin, Recipes};
 use ui::UiPlugin;
 
+mod camera;
 mod ingredient;
+mod node;
 mod recipe;
 mod ui;
 mod utils;
@@ -12,7 +16,13 @@ mod utils;
 fn main() {
     App::new()
         .add_plugins(DefaultPlugins)
-        .add_plugins((IngredientPlugin, RecipePlugin, UiPlugin))
+        .add_plugins((
+            IngredientPlugin,
+            RecipePlugin,
+            UiPlugin,
+            NodePlugin,
+            CameraPlugin,
+        ))
         .add_systems(Startup, (setup, setup_recipes))
         .run();
 }
@@ -56,26 +66,6 @@ fn setup(
     mut meshes: ResMut<Assets<Mesh>>,
     mut materials: ResMut<Assets<StandardMaterial>>,
 ) {
-    commands.spawn(Camera3dBundle {
-        transform: Transform::from_xyz(3.0, 15.0, -6.0).looking_at(Vec3::ZERO, Vec3::Y),
-        ..Default::default()
-    });
-
-    commands.spawn(PbrBundle {
-        mesh: meshes.add(
-            shape::Icosphere {
-                radius: 1.0,
-                subdivisions: 2,
-                ..Default::default()
-            }
-            .try_into()
-            .unwrap(),
-        ),
-        material: materials.add(Color::RED.into()),
-        transform: Transform::from_xyz(0.0, 0.5, 0.0),
-        ..Default::default()
-    });
-
     commands.spawn(PbrBundle {
         mesh: meshes.add(
             shape::Plane {
