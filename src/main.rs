@@ -4,6 +4,7 @@ use camera::CameraPlugin;
 use ingredient::{IngredientPlugin, IngredientType};
 use link::LinkPlugin;
 use node::NodePlugin;
+use picking::PickingPlugin;
 use recipe::{Recipe, RecipePlugin, Recipes};
 use ui::UiPlugin;
 
@@ -11,6 +12,7 @@ mod camera;
 mod ingredient;
 mod link;
 mod node;
+mod picking;
 mod recipe;
 mod ui;
 mod utils;
@@ -25,6 +27,7 @@ fn main() {
             NodePlugin,
             LinkPlugin,
             CameraPlugin,
+            PickingPlugin,
         ))
         .add_systems(Startup, (setup, setup_recipes))
         .run();
@@ -62,25 +65,17 @@ fn setup_recipes(mut recipes: ResMut<Recipes>) {
         automatic: true,
         delay: 1.0,
     });
+
+    // Steel
+    recipes.add_recipe(Recipe {
+        input: vec![(IngredientType::Iron, 10.0), (IngredientType::Coal, 50.0)],
+        output: vec![(IngredientType::Steel, 10.0)],
+        automatic: true,
+        delay: 15.0,
+    });
 }
 
-fn setup(
-    mut commands: Commands,
-    mut meshes: ResMut<Assets<Mesh>>,
-    mut materials: ResMut<Assets<StandardMaterial>>,
-) {
-    // commands.spawn(PbrBundle {
-    //     mesh: meshes.add(
-    //         shape::Plane {
-    //             size: 100.0,
-    //             ..Default::default()
-    //         }
-    //         .into(),
-    //     ),
-    //     material: materials.add(Color::WHITE.into()),
-    //     ..Default::default()
-    // });
-
+fn setup(mut commands: Commands) {
     commands.spawn(DirectionalLightBundle {
         directional_light: DirectionalLight {
             shadows_enabled: true,

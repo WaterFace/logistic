@@ -34,6 +34,7 @@ fn setup_camera(mut commands: Commands) {
         MainCamera,
         CameraZoom::default(),
         CameraFocus::default(),
+        bevy_mod_picking::prelude::RaycastPickCamera::default(),
     ));
 }
 

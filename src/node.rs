@@ -2,9 +2,11 @@ use std::f32::consts::PI;
 
 use bevy::{prelude::*, utils::HashMap};
 
+use bevy_mod_picking::prelude::*;
+
 use crate::ingredient::IngredientType;
 
-#[derive(Component)]
+#[derive(Component, Debug)]
 pub struct Node {
     pub ty: IngredientType,
     pub visible: bool,
@@ -28,12 +30,42 @@ impl core::ops::DerefMut for NodeRegistry {
     }
 }
 
+fn add_pointer_event_listeners(mut commands: Commands, query: Query<Entity, Added<Node>>) {
+    for e in query.iter() {
+        commands
+            .entity(e)
+            .insert((PickableBundle::default(), RaycastPickTarget::default()))
+            .insert(On::<Pointer<Over>>::run(handle_pointer_over))
+            .insert(On::<Pointer<Out>>::run(handle_pointer_out))
+            .insert(On::<Pointer<Click>>::run(handle_pointer_click));
+    }
+}
+
+fn handle_pointer_over(listener: Listener<Pointer<Over>>, query: Query<&Node>) {
+    if let Ok(node) = query.get(listener.target) {
+        info!("Pointer over {:?}", node);
+    }
+}
+
+fn handle_pointer_out(listener: Listener<Pointer<Out>>, query: Query<&Node>) {
+    if let Ok(node) = query.get(listener.target) {
+        info!("Pointer out {:?}", node);
+    }
+}
+
+fn handle_pointer_click(listener: Listener<Pointer<Click>>, query: Query<&Node>) {
+    if let Ok(node) = query.get(listener.target) {
+        info!("Pointer click {:?}", node);
+    }
+}
+
 pub struct NodePlugin;
 
 impl Plugin for NodePlugin {
     fn build(&self, app: &mut App) {
         app.init_resource::<NodeRegistry>()
-            .add_systems(Startup, setup_nodes);
+            .add_systems(Startup, setup_nodes)
+            .add_systems(Update, add_pointer_event_listeners);
     }
 }
 

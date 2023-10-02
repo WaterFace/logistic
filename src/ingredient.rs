@@ -6,6 +6,7 @@ pub enum IngredientType {
     Ore,
     Coal,
     Iron,
+    Steel,
 }
 
 // Keep this up to date
@@ -13,6 +14,7 @@ const INGREDIENT_TYPES: &'static [IngredientType] = &[
     IngredientType::Ore,
     IngredientType::Coal,
     IngredientType::Iron,
+    IngredientType::Steel,
 ];
 
 impl IngredientType {
@@ -25,6 +27,7 @@ impl IngredientType {
             IngredientType::Ore => "Ore",
             IngredientType::Coal => "Coal",
             IngredientType::Iron => "Iron",
+            IngredientType::Steel => "Steel",
         }
     }
 
@@ -33,6 +36,7 @@ impl IngredientType {
             IngredientType::Ore => Color::BEIGE,
             IngredientType::Coal => Color::BLACK,
             IngredientType::Iron => Color::GRAY,
+            IngredientType::Steel => Color::WHITE,
         }
     }
 }
@@ -87,6 +91,7 @@ impl Default for Ingredients {
                 Ingredient::default(), // Ore
                 Ingredient::default(), // Coal
                 Ingredient::default(), // Iron
+                Ingredient::default(), // Steel
             ],
         }
     }
