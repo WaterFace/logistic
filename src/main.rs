@@ -1,6 +1,7 @@
 use bevy::{math::vec3, prelude::*};
 
 use camera::CameraPlugin;
+use floating_text::FloatingTextPlugin;
 use ingredient::{IngredientPlugin, IngredientType};
 use link::LinkPlugin;
 use node::NodePlugin;
@@ -9,6 +10,7 @@ use recipe::{Recipe, RecipePlugin, Recipes};
 use ui::UiPlugin;
 
 mod camera;
+mod floating_text;
 mod ingredient;
 mod link;
 mod node;
@@ -28,6 +30,7 @@ fn main() {
             LinkPlugin,
             CameraPlugin,
             PickingPlugin,
+            FloatingTextPlugin,
         ))
         .add_systems(Startup, (setup, setup_recipes))
         .run();
