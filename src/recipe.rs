@@ -71,6 +71,38 @@ impl Recipes {
             .enumerate()
             .map(|(i, r)| (RecipeIndex(i), r))
     }
+
+    pub fn get_recipe(&self, index: &RecipeIndex) -> &Recipe {
+        &self.get_recipe_holder(index).recipe
+    }
+
+    pub fn get_recipe_holder(&self, index: &RecipeIndex) -> &RecipeHolder {
+        let RecipeIndex(i) = index;
+
+        if *i >= self.recipes.len() {
+            panic!(
+                "Tried to access recipe at index {}, but only {} recipes are registered.",
+                i,
+                self.recipes.len()
+            );
+        }
+
+        &self.recipes[*i]
+    }
+
+    pub fn get_recipe_holder_mut(&mut self, index: &RecipeIndex) -> &mut RecipeHolder {
+        let RecipeIndex(i) = index;
+
+        if *i >= self.recipes.len() {
+            panic!(
+                "Tried to access recipe at index {}, but only {} recipes are registered.",
+                i,
+                self.recipes.len()
+            );
+        }
+
+        &mut self.recipes[*i]
+    }
 }
 
 #[derive(Event, Debug)]
@@ -108,11 +140,11 @@ fn process_recipe_events(
 ) {
     for event in reader.into_iter() {
         match event {
-            RecipeEvent::StartRecipe(RecipeIndex(i)) => {
+            RecipeEvent::StartRecipe(i) => {
                 // TODO: figure out whether the can_run check should run here or wherever
                 // these events are emitted. For now, it's wherever they're emitted
 
-                let recipe_holder = &mut recipes.recipes[*i];
+                let recipe_holder = recipes.get_recipe_holder_mut(i);
 
                 // Deduct input ingredients
                 for (ty, amount) in &recipe_holder.recipe.input {
@@ -123,8 +155,8 @@ fn process_recipe_events(
                 // Flag the recipe so it starts ticking
                 recipe_holder.started = true;
             }
-            RecipeEvent::FinishRecipe(RecipeIndex(i)) => {
-                let recipe_holder = &mut recipes.recipes[*i];
+            RecipeEvent::FinishRecipe(i) => {
+                let recipe_holder = recipes.get_recipe_holder_mut(i);
 
                 // Add output ingredients
                 for (ty, amount) in &recipe_holder.recipe.output {
