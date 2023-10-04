@@ -12,6 +12,29 @@ pub struct Node {
     pub visible: bool,
 }
 
+#[derive(Component, Debug)]
+struct NodeScale {
+    target_scale: f32,
+}
+
+impl Default for NodeScale {
+    fn default() -> Self {
+        NodeScale { target_scale: 1.0 }
+    }
+}
+
+fn scale_nodes(mut query: Query<(&mut Transform, &NodeScale)>, time: Res<Time>) {
+    const SCALE_SPEED: f32 = 15.0;
+    for (mut transform, node_scale) in query.iter_mut() {
+        let target_scale = node_scale.target_scale;
+        let current_scale = transform.scale.length();
+        let ratio = target_scale / current_scale;
+
+        transform.scale *= ratio.powf(time.delta_seconds() * SCALE_SPEED);
+    }
+}
+
+/// Stores a mapping from `IngredientType` to the `Entity` of the corresponding node
 #[derive(Resource, Default)]
 pub struct NodeRegistry {
     map: HashMap<IngredientType, Entity>,
@@ -35,29 +58,31 @@ fn add_pointer_event_listeners(mut commands: Commands, query: Query<Entity, Adde
         commands
             .entity(e)
             .insert((PickableBundle::default(), RaycastPickTarget::default()))
-            .insert(On::<Pointer<Over>>::run(handle_pointer_over))
-            .insert(On::<Pointer<Out>>::run(handle_pointer_out))
-            .insert(On::<Pointer<Click>>::run(handle_pointer_click));
+            .insert((
+                On::<Pointer<Over>>::run(handle_pointer_over),
+                On::<Pointer<Out>>::run(handle_pointer_out),
+                On::<Pointer<Click>>::run(handle_pointer_click),
+            ));
     }
 }
 
-fn handle_pointer_over(listener: Listener<Pointer<Over>>, query: Query<&Node>) {
-    if let Ok(node) = query.get(listener.target) {
-        info!("Pointer over {:?}", node);
+fn handle_pointer_over(
+    listener: Listener<Pointer<Over>>,
+    mut query: Query<(&Node, &mut NodeScale)>,
+) {
+    if let Ok((_, mut node_scale)) = query.get_mut(listener.target) {
+        node_scale.target_scale = 1.1;
     }
 }
 
-fn handle_pointer_out(listener: Listener<Pointer<Out>>, query: Query<&Node>) {
-    if let Ok(node) = query.get(listener.target) {
-        info!("Pointer out {:?}", node);
+fn handle_pointer_out(listener: Listener<Pointer<Out>>, mut query: Query<(&Node, &mut NodeScale)>) {
+    if let Ok((_, mut node_scale)) = query.get_mut(listener.target) {
+        node_scale.target_scale = 1.0;
     }
 }
 
-fn handle_pointer_click(listener: Listener<Pointer<Click>>, query: Query<&Node>) {
-    if let Ok(node) = query.get(listener.target) {
-        info!("Pointer click {:?}", node);
-    }
-}
+// Does nothing for now
+fn handle_pointer_click() {}
 
 pub struct NodePlugin;
 
@@ -65,7 +90,7 @@ impl Plugin for NodePlugin {
     fn build(&self, app: &mut App) {
         app.init_resource::<NodeRegistry>()
             .add_systems(Startup, setup_nodes)
-            .add_systems(Update, add_pointer_event_listeners);
+            .add_systems(Update, (add_pointer_event_listeners, scale_nodes));
     }
 }
 
@@ -99,6 +124,7 @@ fn setup_nodes(
                     ty: *ty,
                     visible: true,
                 },
+                NodeScale::default(),
             ))
             .id();
 
