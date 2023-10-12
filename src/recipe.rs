@@ -1,11 +1,11 @@
 use bevy::prelude::*;
 
-use crate::ingredient::{IngredientType, Ingredients};
+use crate::ingredient::{IngredientIndex, Ingredients};
 
 #[derive(Debug)]
 pub struct Recipe {
-    pub input: Vec<(IngredientType, f64)>,
-    pub output: Vec<(IngredientType, f64)>,
+    pub input: Vec<(IngredientIndex, f64)>,
+    pub output: Vec<(IngredientIndex, f64)>,
     pub automatic: bool,
     pub delay: f64,
 }

@@ -1,48 +1,18 @@
 use bevy::prelude::*;
 
 #[derive(Debug, PartialEq, Eq, Hash, Clone, Copy)]
-#[repr(usize)]
-pub enum IngredientType {
-    Ore,
-    Coal,
-    Iron,
-    Steel,
-}
+pub struct IngredientIndex(usize);
 
-// Keep this up to date
-const INGREDIENT_TYPES: &'static [IngredientType] = &[
-    IngredientType::Ore,
-    IngredientType::Coal,
-    IngredientType::Iron,
-    IngredientType::Steel,
-];
-
-impl IngredientType {
-    pub const fn values() -> &'static [Self] {
-        INGREDIENT_TYPES
-    }
-
-    pub fn name(&self) -> &'static str {
-        match self {
-            IngredientType::Ore => "Ore",
-            IngredientType::Coal => "Coal",
-            IngredientType::Iron => "Iron",
-            IngredientType::Steel => "Steel",
-        }
-    }
-
-    pub fn color(&self) -> Color {
-        match self {
-            IngredientType::Ore => Color::BEIGE,
-            IngredientType::Coal => Color::BLACK,
-            IngredientType::Iron => Color::GRAY,
-            IngredientType::Steel => Color::WHITE,
-        }
+impl IngredientIndex {
+    pub fn ix(&self) -> usize {
+        self.0
     }
 }
 
 #[derive(Debug)]
 pub struct Ingredient {
+    pub name: String,
+    pub color: Color,
     pub quantity: f64,
     pub capacity: Option<f64>,
 }
@@ -63,37 +33,43 @@ impl Ingredient {
 impl Default for Ingredient {
     fn default() -> Self {
         Ingredient {
+            name: String::new(),
+            color: Color::WHITE,
             quantity: 0.0,
             capacity: None,
         }
     }
 }
 
-#[derive(Resource)]
+#[derive(Resource, Default)]
 pub struct Ingredients {
-    ingredients: [Ingredient; INGREDIENT_TYPES.len()],
+    ingredients: Vec<Ingredient>,
 }
 
 impl Ingredients {
-    pub fn get(&self, ty: IngredientType) -> &Ingredient {
-        &self.ingredients[ty as usize]
+    pub fn get(&self, ty: IngredientIndex) -> &Ingredient {
+        &self.ingredients[ty.0]
     }
 
-    pub fn get_mut(&mut self, ty: IngredientType) -> &mut Ingredient {
-        &mut self.ingredients[ty as usize]
+    pub fn get_mut(&mut self, ty: IngredientIndex) -> &mut Ingredient {
+        &mut self.ingredients[ty.0]
     }
-}
 
-impl Default for Ingredients {
-    fn default() -> Self {
-        Ingredients {
-            ingredients: [
-                Ingredient::default(), // Ore
-                Ingredient::default(), // Coal
-                Ingredient::default(), // Iron
-                Ingredient::default(), // Steel
-            ],
-        }
+    pub fn add_ingredient(&mut self, ingredient: Ingredient) -> IngredientIndex {
+        let ix = self.ingredients.len();
+        self.ingredients.push(ingredient);
+        IngredientIndex(ix)
+    }
+
+    pub fn len(&self) -> usize {
+        self.ingredients.len()
+    }
+
+    pub fn iter(&self) -> impl Iterator<Item = (IngredientIndex, &Ingredient)> {
+        self.ingredients
+            .iter()
+            .enumerate()
+            .map(|(i, ingr)| (IngredientIndex(i), ingr))
     }
 }
 

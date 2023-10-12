@@ -2,6 +2,7 @@ use bevy::prelude::*;
 
 use crate::{
     camera::MainCamera,
+    ingredient::Ingredients,
     node::{Node, NodeRegistry},
     recipe::{RecipeEvent, Recipes},
     utils,
@@ -59,6 +60,7 @@ fn recipe_completion(
     mut commands: Commands,
     mut reader: EventReader<RecipeEvent>,
     recipes: Res<Recipes>,
+    ingredients: Res<Ingredients>,
     node_registry: Res<NodeRegistry>,
     node_query: Query<&Transform, With<Node>>,
     settings: Res<FloatingTextSettings>,
@@ -77,14 +79,14 @@ fn recipe_completion(
 
         for (ty, amount) in recipe.output.iter() {
             let Some(node_e) = node_registry.get(ty) else {
-                warn!("No node registered for {}", ty.name());
+                warn!("No node registered for {}", ingredients.get(*ty).name);
                 continue;
             };
 
             let Ok(node_transform) = node_query.get(*node_e) else {
                 warn!(
                     "Couldn't find transform of node registered for {}",
-                    ty.name()
+                    ingredients.get(*ty).name
                 );
                 continue;
             };

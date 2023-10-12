@@ -4,11 +4,11 @@ use bevy::{prelude::*, utils::HashMap};
 
 use bevy_mod_picking::prelude::*;
 
-use crate::ingredient::IngredientType;
+use crate::ingredient::{IngredientIndex, Ingredients};
 
 #[derive(Component, Debug)]
 pub struct Node {
-    pub ty: IngredientType,
+    pub ty: IngredientIndex,
     pub visible: bool,
 }
 
@@ -37,11 +37,11 @@ fn scale_nodes(mut query: Query<(&mut Transform, &NodeScale)>, time: Res<Time>) 
 /// Stores a mapping from `IngredientType` to the `Entity` of the corresponding node
 #[derive(Resource, Default)]
 pub struct NodeRegistry {
-    map: HashMap<IngredientType, Entity>,
+    map: HashMap<IngredientIndex, Entity>,
 }
 
 impl core::ops::Deref for NodeRegistry {
-    type Target = HashMap<IngredientType, Entity>;
+    type Target = HashMap<IngredientIndex, Entity>;
     fn deref(&self) -> &Self::Target {
         &self.map
     }
@@ -94,11 +94,13 @@ impl Plugin for NodePlugin {
     }
 }
 
+// TODO: Temporary
 fn setup_nodes(
     mut commands: Commands,
     mut registry: ResMut<NodeRegistry>,
     mut meshes: ResMut<Assets<Mesh>>,
     mut materials: ResMut<Assets<StandardMaterial>>,
+    ingredients: Res<Ingredients>,
 ) {
     let mesh = meshes.add(
         shape::Icosphere {
@@ -110,27 +112,24 @@ fn setup_nodes(
         .unwrap(),
     );
 
-    for ty in IngredientType::values() {
-        let t = 2.0 * PI * (*ty as usize as f32 / IngredientType::values().len() as f32);
+    for (ty, ingr) in ingredients.iter() {
+        let t = 2.0 * PI * (ty.ix() as f32 / ingredients.len() as f32);
         let e = commands
             .spawn((
                 PbrBundle {
                     mesh: mesh.clone(),
-                    material: materials.add(ty.color().into()),
+                    material: materials.add(ingr.color.into()),
                     transform: Transform::from_xyz(2.0 * f32::cos(t), 0.5, 2.0 * f32::sin(t)),
                     ..Default::default()
                 },
-                Node {
-                    ty: *ty,
-                    visible: true,
-                },
+                Node { ty, visible: true },
                 NodeScale::default(),
             ))
             .id();
 
-        match registry.get_mut(ty) {
+        match registry.get_mut(&ty) {
             None => {
-                registry.insert(*ty, e);
+                registry.insert(ty, e);
             }
             Some(old_e) => {
                 *old_e = e;

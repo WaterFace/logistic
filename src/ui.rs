@@ -2,12 +2,7 @@ use bevy::prelude::*;
 
 use bevy_egui::{egui, EguiContexts, EguiPlugin, EguiSet, EguiStartupSet};
 
-use crate::{
-    camera::SetTarget,
-    ingredient::{IngredientType, Ingredients},
-    node::NodeRegistry,
-    utils,
-};
+use crate::{camera::SetTarget, ingredient::Ingredients, node::NodeRegistry, utils};
 
 pub struct UiPlugin;
 
@@ -45,27 +40,27 @@ fn draw_ui(
         return;
     };
     if owned_labels.is_empty() {
-        for _ in IngredientType::values() {
+        for _ in 0..ingredients.len() {
             owned_labels.push(String::new());
         }
     }
     egui::SidePanel::left("ingredient display")
         .resizable(false)
         .show_animated(ctx, !*hide_display, |ui| {
-            for ty in IngredientType::values() {
+            for (ty, ingr) in ingredients.iter() {
                 ui.horizontal(|ui| {
                     use std::fmt::Write;
-                    let mut label = &mut owned_labels[*ty as usize];
+                    let mut label = &mut owned_labels[ty.ix()];
                     label.clear();
-                    write!(label, "{}: ", ty.name()).unwrap();
-                    utils::write_format_f64(&mut label, ingredients.get(*ty).quantity).unwrap();
+                    write!(label, "{}: ", &ingr.name).unwrap();
+                    utils::write_format_f64(&mut label, ingr.quantity).unwrap();
                     if ui
                         .button(&*label)
                         .on_hover_cursor(egui::CursorIcon::PointingHand)
                         .clicked()
                     {
-                        info!("{} clicked!", ty.name());
-                        if let Some(e) = node_registry.get(ty) {
+                        info!("{} clicked!", &ingr.name);
+                        if let Some(e) = node_registry.get(&ty) {
                             writer.send(SetTarget(*e));
                         }
                     }
