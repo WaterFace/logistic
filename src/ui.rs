@@ -1,14 +1,29 @@
 use bevy::prelude::*;
 
-use bevy_egui::{egui, EguiContexts, EguiPlugin, EguiSet, EguiStartupSet};
+use bevy_egui::{
+    egui::{self, Ui},
+    EguiContexts, EguiPlugin, EguiSet, EguiStartupSet,
+};
 
-use crate::{camera::SetTarget, ingredient::Ingredients, node::NodeRegistry, utils};
+use crate::{
+    camera::SetTarget,
+    ingredient::{IngredientIndex, Ingredients},
+    node::NodeRegistry,
+    recipe::{Recipe, Recipes},
+    utils,
+};
+
+#[derive(Debug, Default, Resource)]
+pub struct SelectedNode {
+    pub selected: Option<IngredientIndex>,
+}
 
 pub struct UiPlugin;
 
 impl Plugin for UiPlugin {
     fn build(&self, app: &mut App) {
         app.add_plugins(EguiPlugin)
+            .init_resource::<SelectedNode>()
             .add_systems(
                 Startup,
                 configure_visuals.after(EguiStartupSet::InitContexts),
@@ -32,6 +47,8 @@ fn draw_ui(
     main_window_query: Query<Entity, With<bevy::window::PrimaryWindow>>,
     mut writer: EventWriter<SetTarget>,
     node_registry: Res<NodeRegistry>,
+    selected_node: Res<SelectedNode>,
+    recipes: Res<Recipes>,
 ) {
     let Ok(main_window) = main_window_query.get_single() else {
         return;
@@ -86,4 +103,46 @@ fn draw_ui(
                 *hide_display = !*hide_display;
             };
         });
+
+    if let Some(selected_ingredient) = selected_node.selected {
+        egui::SidePanel::right("node panel")
+            .resizable(false)
+            .show(ctx, |ui| {
+                egui::ScrollArea::vertical().show(ui, |ui| {
+                    egui::Grid::new("recipe list")
+                        .num_columns(1)
+                        .striped(true)
+                        .show(ui, |ui| {
+                            // TODO: cache these results somewhere
+                            for (_i, recipe_holder) in recipes.enumerate() {
+                                if recipe_holder
+                                    .recipe
+                                    .output
+                                    .iter()
+                                    .any(|(i, _)| *i == selected_ingredient)
+                                {
+                                    recipe_item(ui, &recipe_holder.recipe, &ingredients);
+                                    ui.end_row();
+                                }
+                            }
+                        });
+                });
+            });
+    }
+}
+
+fn recipe_item(ui: &mut Ui, recipe: &Recipe, ingredients: &Ingredients) {
+    use std::fmt::Write;
+    let mut s1 = "I recieve: ".to_string();
+    for (i, q) in recipe.input.iter() {
+        utils::write_format_number(&mut s1, q.value()).unwrap();
+        write!(&mut s1, " {}, ", ingredients.get(*i).name).unwrap();
+    }
+
+    write!(&mut s1, "\nYou recieve: ").unwrap();
+    for (i, q) in recipe.output.iter() {
+        utils::write_format_number(&mut s1, q.value()).unwrap();
+        write!(&mut s1, " {}, ", ingredients.get(*i).name).unwrap();
+    }
+    ui.label(s1);
 }

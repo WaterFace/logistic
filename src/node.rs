@@ -4,7 +4,10 @@ use bevy::{prelude::*, utils::HashMap};
 
 use bevy_mod_picking::prelude::*;
 
-use crate::ingredient::{IngredientIndex, Ingredients};
+use crate::{
+    ingredient::{IngredientIndex, Ingredients},
+    ui::SelectedNode,
+};
 
 #[derive(Component, Debug)]
 pub struct Node {
@@ -81,8 +84,15 @@ fn handle_pointer_out(listener: Listener<Pointer<Out>>, mut query: Query<(&Node,
     }
 }
 
-// Does nothing for now
-fn handle_pointer_click() {}
+fn handle_pointer_click(
+    listener: Listener<Pointer<Click>>,
+    query: Query<&Node>,
+    mut selected_node: ResMut<SelectedNode>,
+) {
+    if let Ok(node) = query.get(listener.target) {
+        selected_node.selected = Some(node.ty);
+    }
+}
 
 pub struct NodePlugin;
 
