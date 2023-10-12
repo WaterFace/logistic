@@ -17,6 +17,7 @@ mod ingredient;
 mod link;
 mod node;
 mod picking;
+mod quantity;
 mod recipe;
 mod ui;
 mod utils;

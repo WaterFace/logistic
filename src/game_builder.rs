@@ -85,7 +85,7 @@ impl GameBuilder {
 
         for ingredient in self.ingredients {
             let new_ingr = crate::ingredient::Ingredient {
-                capacity: ingredient.cap,
+                capacity: ingredient.cap.map(|q| q.into()),
                 color: ingredient.color,
                 name: ingredient.name,
                 ..Default::default()
@@ -115,7 +115,7 @@ impl GameBuilder {
                         None
                     }
                     Some(ix) => {
-                        Some((*ix, *q))
+                        Some((*ix, crate::quantity::Quantity::new(*q)))
                     }
                 }
             }).collect();
@@ -127,14 +127,14 @@ impl GameBuilder {
                         None
                     }
                     Some(ix) => {
-                        Some((*ix, *q))
+                        Some((*ix, crate::quantity::Quantity::new(*q)))
                     }
                 }
             }).collect();
 
             let new_recipe = crate::recipe::Recipe {
                 automatic: recipe.automatic,
-                delay: recipe.delay,
+                delay: recipe.delay.into(),
                 input,
                 output,
             };

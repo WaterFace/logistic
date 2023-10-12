@@ -53,7 +53,7 @@ fn draw_ui(
                     let mut label = &mut owned_labels[ty.ix()];
                     label.clear();
                     write!(label, "{}: ", &ingr.name).unwrap();
-                    utils::write_format_f64(&mut label, ingr.quantity).unwrap();
+                    utils::write_format_number(&mut label, ingr.current).unwrap();
                     if ui
                         .button(&*label)
                         .on_hover_cursor(egui::CursorIcon::PointingHand)

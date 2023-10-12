@@ -1,20 +1,23 @@
 use bevy::prelude::*;
 
-use crate::ingredient::{IngredientIndex, Ingredients};
+use crate::{
+    ingredient::{IngredientIndex, Ingredients},
+    quantity::Quantity,
+};
 
 #[derive(Debug)]
 pub struct Recipe {
-    pub input: Vec<(IngredientIndex, f64)>,
-    pub output: Vec<(IngredientIndex, f64)>,
+    pub input: Vec<(IngredientIndex, Quantity)>,
+    pub output: Vec<(IngredientIndex, Quantity)>,
     pub automatic: bool,
-    pub delay: f64,
+    pub delay: Quantity,
 }
 
 impl Recipe {
     pub fn can_run_n_times(&self, ingredients: &Ingredients, n: u32) -> bool {
         for &(input_ingredient, amount) in &self.input {
             let ingredient = ingredients.get(input_ingredient);
-            if ingredient.quantity < amount * n as f64 {
+            if ingredient.current < amount.value() * n as f64 {
                 return false;
             }
         }
@@ -121,7 +124,7 @@ fn tick_recipes(
         if recipe_holder.started {
             recipe_holder.time += time.delta_seconds_f64();
 
-            if recipe_holder.time >= recipe_holder.recipe.delay {
+            if recipe_holder.time >= recipe_holder.recipe.delay.value() {
                 writer.send(RecipeEvent::FinishRecipe(RecipeIndex(i)))
             }
         } else if recipe_holder.recipe.automatic
@@ -149,7 +152,7 @@ fn process_recipe_events(
                 // Deduct input ingredients
                 for (ty, amount) in &recipe_holder.recipe.input {
                     let ingredient = ingredients.get_mut(*ty);
-                    ingredient.spend_ingredient(*amount);
+                    ingredient.spend_ingredient(amount.value());
                 }
 
                 // Flag the recipe so it starts ticking
@@ -161,7 +164,7 @@ fn process_recipe_events(
                 // Add output ingredients
                 for (ty, amount) in &recipe_holder.recipe.output {
                     let ingredient = ingredients.get_mut(*ty);
-                    ingredient.add_ingredient(*amount);
+                    ingredient.add_ingredient(amount.value());
                 }
 
                 // Reset the recipe

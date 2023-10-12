@@ -1,5 +1,7 @@
 use bevy::prelude::*;
 
+use crate::quantity::Quantity;
+
 #[derive(Debug, PartialEq, Eq, Hash, Clone, Copy)]
 pub struct IngredientIndex(usize);
 
@@ -13,20 +15,20 @@ impl IngredientIndex {
 pub struct Ingredient {
     pub name: String,
     pub color: Color,
-    pub quantity: f64,
-    pub capacity: Option<f64>,
+    pub current: f64,
+    pub capacity: Option<Quantity>,
 }
 
 impl Ingredient {
     pub fn add_ingredient(&mut self, amount: f64) {
         match self.capacity {
-            None => self.quantity += amount,
-            Some(cap) => self.quantity = f64::min(cap, self.quantity + amount),
+            None => self.current += amount,
+            Some(cap) => self.current = f64::min(cap.value(), self.current + amount),
         }
     }
 
     pub fn spend_ingredient(&mut self, amount: f64) {
-        self.quantity = f64::max(0.0, self.quantity - amount);
+        self.current = f64::max(0.0, self.current - amount);
     }
 }
 
@@ -35,7 +37,7 @@ impl Default for Ingredient {
         Ingredient {
             name: String::new(),
             color: Color::WHITE,
-            quantity: 0.0,
+            current: 0.0,
             capacity: None,
         }
     }

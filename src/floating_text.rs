@@ -92,7 +92,7 @@ fn recipe_completion(
             };
 
             commands.spawn(floating_text_bundle(
-                utils::format_f64(*amount),
+                utils::format_number(amount.value()),
                 node_transform.translation,
             ));
         }
