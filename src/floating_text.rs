@@ -18,7 +18,13 @@ struct FloatingText {
 
 fn position_floating_text(
     mut commands: Commands,
-    mut query: Query<(Entity, &mut Style, &mut Text, &mut FloatingText)>,
+    mut query: Query<(
+        Entity,
+        &mut Style,
+        &mut Text,
+        &mut FloatingText,
+        &mut Visibility,
+    )>,
     main_camera_query: Query<(&Camera, &GlobalTransform), With<MainCamera>>,
     time: Res<Time>,
 ) {
@@ -26,7 +32,7 @@ fn position_floating_text(
         return;
     };
 
-    for (entity, mut style, mut text, mut floating_text) in query.iter_mut() {
+    for (entity, mut style, mut text, mut floating_text, mut visibility) in query.iter_mut() {
         let dt = time.delta_seconds();
 
         floating_text.timer.tick(time.delta());
@@ -53,6 +59,11 @@ fn position_floating_text(
                     .set_a(1.0 - floating_text.timer.percent());
             }
         }
+
+        // The text is hidden until it's positioned
+        // This fixes a bug in which the text is visible at the top left of
+        // the screen immediately after it's spawned
+        *visibility = Visibility::Visible;
     }
 }
 
@@ -114,6 +125,7 @@ fn floating_text_bundle(label: String, position: Vec3) -> impl Bundle {
                     ..Default::default()
                 },
             ),
+            visibility: Visibility::Hidden,
             ..Default::default()
         },
         FloatingText {
@@ -141,7 +153,6 @@ pub struct FloatingTextPlugin;
 impl Plugin for FloatingTextPlugin {
     fn build(&self, app: &mut App) {
         app.init_resource::<FloatingTextSettings>()
-            .add_systems(Update, recipe_completion)
-            .add_systems(Update, position_floating_text);
+            .add_systems(Update, (recipe_completion, position_floating_text));
     }
 }
