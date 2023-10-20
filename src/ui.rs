@@ -144,5 +144,15 @@ fn recipe_item(ui: &mut Ui, recipe: &Recipe, ingredients: &Ingredients) {
         utils::write_format_number(&mut s1, q.value()).unwrap();
         write!(&mut s1, " {}, ", ingredients.get(*i).name).unwrap();
     }
-    ui.label(s1);
+
+    egui::Frame::none()
+        .outer_margin(egui::Margin::same(2.0))
+        .inner_margin(egui::Margin::same(2.0))
+        .stroke(egui::Stroke::new(1.0, egui::Color32::DARK_GRAY))
+        .fill(egui::Color32::GRAY)
+        .rounding(egui::Rounding::same(2.0))
+        .shadow(egui::epaint::Shadow::small_dark())
+        .show(ui, |ui| {
+            ui.label(s1);
+        });
 }

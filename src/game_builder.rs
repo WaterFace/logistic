@@ -133,6 +133,7 @@ impl GameBuilder {
             }).collect();
 
             let new_recipe = crate::recipe::Recipe {
+                id: recipe.id.clone(),
                 automatic: recipe.automatic,
                 delay: recipe.delay.into(),
                 input,

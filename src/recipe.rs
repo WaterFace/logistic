@@ -7,6 +7,7 @@ use crate::{
 
 #[derive(Debug)]
 pub struct Recipe {
+    pub id: String,
     pub input: Vec<(IngredientIndex, Quantity)>,
     pub output: Vec<(IngredientIndex, Quantity)>,
     pub automatic: bool,
